@@ -9,6 +9,8 @@ import json,os
 import subprocess
 from .serializers import FileSerializer
 from django.core.files.storage import FileSystemStorage
+import base64
+from django.views.decorators.csrf import csrf_exempt
 
 def temp(request) :
     subprocess.Popen(['/home/sai/Desktop/project_temp/temp2.sh'], shell=True)
@@ -16,13 +18,24 @@ def temp(request) :
     response = {}
     return render(request,'codeable/temp.djt',response)
 
+@csrf_exempt
 def FileView(request):
     folder='my_folder/' 
-    if request.method == 'POST' and request.FILES['file']:
-        myfile = request.FILES['file']
-        fs = FileSystemStorage(location=folder) #defaults to   MEDIA_ROOT  
-        filename = fs.save(myfile.name, myfile)
-        file_url = fs.url(filename)
-        return HttpResponse('file_url=' + file_url)
+    if request.method == 'POST':
+        temp = json.loads(request.body.decode("utf-8"))
+        # myfile = request.FILES['file']
+        # fs = FileSystemStorage(location=folder) #defaults to   MEDIA_ROOT  
+        # filename = fs.save(myfile.name, myfile)
+        # file_url = fs.url(filename)
+        # return HttpResponse('file_url=' + file_url)
+
+        myfiledata = temp['file']
+       # print('file=' + myfiledata)
+        imgdata = base64.b64decode(myfiledata)
+        filename = 'some_image.jpg'  # I assume you have a way of picking unique filenames
+        with open(filename, 'wb') as f:
+            f.write(imgdata) 
+        #print('json=' + str(temp))
+        return HttpResponse('ok!!!')
     else:
          return HttpResponse('some error occured')
